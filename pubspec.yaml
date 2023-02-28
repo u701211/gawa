@@ -69,6 +69,9 @@ flutter:
 
   assets:
     - assets/spa/
+    - assets/spa/static/
+    - assets/spa/static/js/
+    - assets/spa/static/css/
     - assets/.env
 
   # An image asset can refer to one or more resolution-specific "variants", see
