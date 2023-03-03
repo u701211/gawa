@@ -34,11 +34,12 @@ onPageEventHandler(
   }
 }
 
-risePageEvent(
-    WebViewPlusController Function() controller, AppLifecycleState state) {
+risePageEvent(WebViewPlusController Function() controller,
+    AppLifecycleState state) async {
   var callbackValue = state.toString().split('.')[1];
   try {
-    runJavascriptReturningResult(controller(), proxy, callbackValue);
+    String result =
+        await runJavascriptReturningResult(controller(), proxy, callbackValue);
   } catch (e) {
     debugPrint('$e');
   }

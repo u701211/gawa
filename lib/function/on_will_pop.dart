@@ -14,15 +14,12 @@ JavascriptChannel onWillPop(WebViewPlusController Function() controller) {
 
 Future<bool> onWillPopHandler(
     WebViewPlusController Function() controller) async {
-  var result = await riseWillPop(controller);
-  return result == true.toString();
-}
-
-Future<String> riseWillPop(WebViewPlusController Function() controller) {
   try {
-    return runJavascriptReturningResult(controller(), proxy, null);
+    String result =
+        await runJavascriptReturningResult(controller(), proxy, null);
+    return result == 'null' ? true : result == true.toString();
   } catch (e) {
     debugPrint('$e');
-    return Future.value(true.toString());
+    return true;
   }
 }
