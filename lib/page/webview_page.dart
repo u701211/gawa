@@ -32,25 +32,7 @@ class _WebViewPageState extends State<WebViewPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
-    switch (state) {
-      // 非アクティブ
-      case AppLifecycleState.inactive:
-        risePageEvent(() => controller, state);
-        break;
-      // 停止
-      case AppLifecycleState.paused:
-        risePageEvent(() => controller, state);
-        break;
-      // 再開
-      case AppLifecycleState.resumed:
-        risePageEvent(() => controller, state);
-        break;
-      // 破棄
-      case AppLifecycleState.detached:
-        risePageEvent(() => controller, state);
-        break;
-    }
+    onPageEventHandler(state, () => controller);
   }
 
   @override
@@ -61,51 +43,51 @@ class _WebViewPageState extends State<WebViewPage> with WidgetsBindingObserver {
       // ),
       body: SafeArea(
         child: WillPopScope(
-          child: Stack(
-            children: [
-              WebViewPlus(
-                serverPort: int.parse(dotenv.get('SERVER_PORT')),
-                javascriptMode: JavascriptMode.unrestricted,
-                debuggingEnabled: true,
-                onWebViewCreated: (controller) {
-                  this.controller = controller;
-                  // テスト用
-                  // controller.loadUrl('https://www.google.com');
+            child: Stack(
+              children: [
+                WebViewPlus(
+                  serverPort: int.parse(dotenv.get('SERVER_PORT')),
+                  javascriptMode: JavascriptMode.unrestricted,
+                  debuggingEnabled: true,
+                  onWebViewCreated: (controller) {
+                    this.controller = controller;
+                    // テスト用
+                    // controller.loadUrl('https://www.google.com');
 
-                  // Auth0はhttpではエラーになる -> auth0-spa-js must run on a secure origin.
-                  // controller.loadUrl('http://10.0.2.2:3000/gawaApp');
-                  // controller.loadUrl('http://192.168.1.130:3000/gawaApp');
+                    // Auth0はhttpではエラーになる -> auth0-spa-js must run on a secure origin.
+                    // controller.loadUrl('http://10.0.2.2:3000/gawaApp');
+                    // controller.loadUrl('http://192.168.1.130:3000/gawaApp');
 
-                  // httpsは現状エラーで起動出来ず -> E/chromium(26544): [ERROR:ssl_client_socket_impl.cc(985)] handshake failed; returned -1, SSL error code 1, net_error -202
-                  // controller.loadUrl('https://10.0.2.2:3000/gawaApp');
-                  // controller.loadUrl('https://192.168.1.130:3000/gawaApp');
+                    // httpsは現状エラーで起動出来ず -> E/chromium(26544): [ERROR:ssl_client_socket_impl.cc(985)] handshake failed; returned -1, SSL error code 1, net_error -202
+                    // controller.loadUrl('https://10.0.2.2:3000/gawaApp');
+                    // controller.loadUrl('https://192.168.1.130:3000/gawaApp');
 
-                  // グローバルアドレスのhttpsはOK
-                  // controller.loadUrl('https://u701211.github.io/gawaApp');
+                    // グローバルアドレスのhttpsはOK
+                    // controller.loadUrl('https://u701211.github.io/gawaApp');
 
-                  // 1. ローカルのアセットロードはOK ※1.と2.は同義
-                  controller.loadUrl(dotenv.get('SPA_LOAD_URL'));
-                  // 2. ローカルのアセットロードはOK ※1.と2.は同義
-                  // controller.loadUrl(
-                  //     'localhost:${int.parse(dotenv.get('SERVER_PORT'))}/${dotenv.get('SPA_LOAD_URL')}');
-                },
-                onPageStarted: (url) {
-                  setState(() {
-                    loadingPercentage = 0;
-                  });
-                },
-                onProgress: (progress) {
-                  setState(() {
-                    loadingPercentage = progress;
-                  });
-                },
-                onPageFinished: (url) {
-                  setState(() {
-                    loadingPercentage = 100;
-                  });
-                },
-                onWebResourceError: (error) {
-                  debugPrint('''
+                    // 1. ローカルのアセットロードはOK ※1.と2.は同義
+                    controller.loadUrl(dotenv.get('SPA_LOAD_URL'));
+                    // 2. ローカルのアセットロードはOK ※1.と2.は同義
+                    // controller.loadUrl(
+                    //     'localhost:${int.parse(dotenv.get('SERVER_PORT'))}/${dotenv.get('SPA_LOAD_URL')}');
+                  },
+                  onPageStarted: (url) {
+                    setState(() {
+                      loadingPercentage = 0;
+                    });
+                  },
+                  onProgress: (progress) {
+                    setState(() {
+                      loadingPercentage = progress;
+                    });
+                  },
+                  onPageFinished: (url) {
+                    setState(() {
+                      loadingPercentage = 100;
+                    });
+                  },
+                  onWebResourceError: (error) {
+                    debugPrint('''
 Page resource エラー:
   code: ${error.errorCode}
   domain: ${error.domain}
@@ -113,41 +95,37 @@ Page resource エラー:
   errorType: ${error.errorType}
   failingUrl: ${error.failingUrl}
             ''');
-                },
-                navigationDelegate: (navigation) {
-                  bool ok;
-                  if (!navigation.isForMainFrame) {
-                    ok = true;
-                  } else {
-                    final host = Uri.parse(navigation.url).host;
-                    final whiteList = dotenv.get('INCLUDE_DOMAIN').split(',');
-                    ok = whiteList.contains(host);
-                  }
+                  },
+                  navigationDelegate: (navigation) {
+                    bool ok;
+                    if (!navigation.isForMainFrame) {
+                      ok = true;
+                    } else {
+                      final host = Uri.parse(navigation.url).host;
+                      final whiteList = dotenv.get('INCLUDE_DOMAIN').split(',');
+                      ok = whiteList.contains(host);
+                    }
 
-                  if (ok) {
-                    return NavigationDecision.navigate;
-                  } else {
-                    launchUrl(Uri.parse(navigation.url),
-                        mode: LaunchMode.externalApplication);
+                    if (ok) {
+                      return NavigationDecision.navigate;
+                    } else {
+                      launchUrl(Uri.parse(navigation.url),
+                          mode: LaunchMode.externalApplication);
 
-                    return NavigationDecision.prevent;
-                  }
-                },
-                // jsからの接続チャンネルを生成
-                javascriptChannels:
-                    createJavascriptChannels(context, () => controller),
-              ),
-              if (loadingPercentage < 100)
-                LinearProgressIndicator(
-                  value: loadingPercentage / 100.0,
+                      return NavigationDecision.prevent;
+                    }
+                  },
+                  // jsからの接続チャンネルを生成
+                  javascriptChannels:
+                      createJavascriptChannels(context, () => controller),
                 ),
-            ],
-          ),
-          onWillPop: () async {
-            var result = await riseWillPop(() => controller);
-            return result == true.toString();
-          },
-        ),
+                if (loadingPercentage < 100)
+                  LinearProgressIndicator(
+                    value: loadingPercentage / 100.0,
+                  ),
+              ],
+            ),
+            onWillPop: () => onWillPopHandler(() => controller)),
       ),
       floatingActionButton: Row(
         mainAxisSize: MainAxisSize.min,

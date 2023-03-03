@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'package:flutter/material.dart';
 import 'package:webview_flutter_plus/webview_flutter_plus.dart';
 import 'create_javascript_channels.dart';
 
@@ -12,8 +12,34 @@ JavascriptChannel onPageEvent(WebViewPlusController Function() controller) {
   );
 }
 
-Future<String> risePageEvent(
+onPageEventHandler(
+    AppLifecycleState state, WebViewPlusController Function() controller) {
+  switch (state) {
+    // 非アクティブ
+    case AppLifecycleState.inactive:
+      risePageEvent(controller, state);
+      break;
+    // 停止
+    case AppLifecycleState.paused:
+      risePageEvent(controller, state);
+      break;
+    // 再開
+    case AppLifecycleState.resumed:
+      risePageEvent(controller, state);
+      break;
+    // 破棄
+    case AppLifecycleState.detached:
+      risePageEvent(controller, state);
+      break;
+  }
+}
+
+risePageEvent(
     WebViewPlusController Function() controller, AppLifecycleState state) {
   var callbackValue = state.toString().split('.')[1];
-  return runJavascriptReturningResult(controller(), proxy, callbackValue);
+  try {
+    runJavascriptReturningResult(controller(), proxy, callbackValue);
+  } catch (e) {
+    debugPrint('$e');
+  }
 }
