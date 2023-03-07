@@ -53,6 +53,10 @@
 		<true/>
 	</dict>
 	<key>io.flutter.embedded_views_preview</key>
-	<true/> 
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>QR コードの読み取りにカメラアクセスが必要です</string>
+  	<key>NSPhotoLibraryUsageDescription</key>
+  	<string>写真一覧からの QR コードの読み取りに写真アクセスが必要です</string>
 </dict>
 </plist>
